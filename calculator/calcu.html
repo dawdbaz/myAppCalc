@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Calculator</title>
+  <style>
+    /* CSS: التصميم الأساسي */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: var(--background-color, #f4f4f9);
+      color: var(--text-color, #000);
+    }
+
+    .dark-mode {
+      --background-color: #121212;
+      --text-color: #fff;
+      --button-bg: #333;
+      --button-hover-bg: #444;
+      --operator-bg: #ff9500;
+      --operator-hover-bg: #cc7a00;
+      --equal-bg: #28a745;
+      --equal-hover-bg: #1e7c33;
+      --clear-bg: #f44336;
+      --clear-hover-bg: #a71d2a;
+    }
+
+    .calculator {
+      width: 400px;
+      background: var(--background-color, #ffffff);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    #display {
+      background: var(--button-bg, #333);
+      color: var(--text-color, #fff);
+      text-align: right;
+      padding: 20px;
+      font-size: 2rem;
+      height: 60px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 20px;
+    }
+
+    button {
+      padding: 25px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      background-color: var(--button-bg, #e0e0e0);
+      color: var(--text-color, #333);
+    }
+
+    button:hover {
+      background-color: var(--button-hover-bg, #d6d6d6);
+    }
+
+    button.operator {
+      background-color: var(--operator-bg, #ff9500);
+    }
+
+    button.operator:hover {
+      background-color: var(--operator-hover-bg, #cc7a00);
+    }
+
+    button.equal {
+      background-color: var(--equal-bg, #28a745);
+      grid-column: span 1;
+    }
+
+    button.equal:hover {
+      background-color: var(--equal-hover-bg, #1e7c33);
+    }
+
+    button.zero {
+      grid-column: span 2;
+    }
+
+    button.clear {
+      background-color: var(--clear-bg, #f44336);
+    }
+
+    button.clear:hover {
+      background-color: var(--clear-hover-bg, #a71d2a);
+    }
+
+    .toggle-dark-mode {
+      margin-bottom: 10px;
+      padding: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--button-bg, #007bff);
+      color: var(--text-color, #fff);
+      transition: background-color 0.3s ease;
+    }
+
+    .toggle-dark-mode:hover {
+      background-color: var(--button-hover-bg, #0056b3);
+    }
+  </style>
+</head>
+<body>
+  <!-- HTML: هيكل الآلة الحاسبة -->
+  <div class="calculator-container">
+    <button class="toggle-dark-mode" id="darkModeToggle">Toggle Dark Mode</button>
+    <div class="calculator">
+      <div id="display">0</div>
+      <div class="buttons">
+        <button class="btn clear">C</button>
+        <button class="btn">±</button>
+        <button class="btn">%</button>
+        <button class="btn operator">/</button>
+        <button class="btn">7</button>
+        <button class="btn">8</button>
+        <button class="btn">9</button>
+        <button class="btn operator">*</button>
+        <button class="btn">4</button>
+        <button class="btn">5</button>
+        <button class="btn">6</button>
+        <button class="btn operator">-</button>
+        <button class="btn">1</button>
+        <button class="btn">2</button>
+        <button class="btn">3</button>
+        <button class="btn operator">+</button>
+        <button class="btn zero">0</button>
+        <button class="btn">.</button>
+        <button class="btn equal">=</button>
+        <!-- إضافة الأزرار الجديدة -->
+        <button class="btn backspace">←</button>
+        <button class="btn operator">(</button>
+        <button class="btn operator)">)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // JavaScript: منطق الآلة الحاسبة
+    const display = document.getElementById('display');
+    const buttons = document.querySelectorAll('.btn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+
+    let currentInput = '';
+    let previousInput = '';
+    let operator = '';
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const value = button.textContent;
+
+        if (button.classList.contains('clear')) {
+          currentInput = '';
+          previousInput = '';
+          operator = '';
+          updateDisplay('0');
+          return;
+        }
+
+        if (value === '±') {
+          currentInput = currentInput ? (parseFloat(currentInput) * -1).toString() : '';
+          updateDisplay(currentInput);
+          return;
+        }
+
+        if (value === '%') {
+          currentInput = currentInput ? (parseFloat(currentInput) / 100).toString() : '';
+          updateDisplay(currentInput);
+          return;
+        }
+
+        if (value === '←') {
+          currentInput = currentInput.slice(0, -1);  // حذف آخر حرف
+          updateDisplay(currentInput || '0');
+          return;
+        }
+
+        if (value === '(' || value === ')') {
+          currentInput += value;  // إضافة القوس المفتوح أو المغلق
+          updateDisplay(currentInput);
+          return;
+        }
+
+        if (button.classList.contains('equal')) {
+          if (currentInput && previousInput && operator) {
+            currentInput = calculate(previousInput, currentInput, operator);
+            operator = '';
+            previousInput = '';
+            updateDisplay(currentInput);
+          }
+          return;
+        }
+
+        if (button.classList.contains('operator')) {
+          if (currentInput) {
+            operator = value;
+            previousInput = currentInput;
+            currentInput = '';
+          }
+          return;
+        }
+
+        if (value === '.' && currentInput.includes('.')) return;
+        currentInput += value;
+        updateDisplay(currentInput);
+      });
+    });
+
+    function updateDisplay(value) {
+      display.textContent = value || '0';
+    }
+
+    function calculate(num1, num2, operator) {
+      const a = parseFloat(num1);
+      const b = parseFloat(num2);
+
+      switch (operator) {
+        case '+':
+          return (a + b).toString();
+        case '-':
+          return (a - b).toString();
+        case '*':
+          return (a * b).toString();
+        case '/':
+          return b !== 0 ? (a / b).toString() : 'Error';
+        default:
+          return '0';
+      }
+    }
+
+    // تفعيل الوضع الداكن
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+  </script>
+</body>
+</html>
